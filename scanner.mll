@@ -26,6 +26,7 @@ rule token = parse
 | '='      { ASSIGN }
 | "&&"     { AND }
 | "||"     { OR }
+| "|"      { PIPE }
 | ">"      { RREDIR }
 | "<"      { LREDIR }
 | ">>"     { APPENDREDIR }
