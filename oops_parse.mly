@@ -157,17 +157,18 @@ llist:
 /* Pipes and redirection*/
 /*RREDIR LREDIR APPENDREDIR  PIPE */
 file:
- ID { $1 }
+ ID 								{ File($1)	}
 
 command:
- ID { $1 }
+ ID 								{ Command($1, []) }
+ ID elem_list 						{ Command($1, $2) }
 
 redirect_pipe:
  command PIPE file					{ Pipe($1, $3) }
  command PIPE redirect_pipe			{ Pipe($1, $3) }
 
 redirect:
- command LREDIR file				{ Redirect($1, Input, $3 }
+ command LREDIR file				{ Redirect($1, Input, $3  }
  command RREDIR file				{ Redirect($1, Output, $3 }
  command APPENDREDIR file			{ Redirect($1, Append, $3 }
 
