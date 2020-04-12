@@ -58,10 +58,31 @@ typ:
     INT   { Int   }
   | BOOL  { Bool  }
   | STR   { Str   }
+  
+cform:
+  ctyp ID { ($1, $2) }
+  
+ctyp:
+    PUBLIC     { public }
+  | PRIVATE    { private }
+  | PROTECTED  { }
 
 /* fdecl */
 fdecl:
   vdecl LPAREN formals_opt RPAREN LBRACE vdecl_list stmt_list RBRACE
+  {
+    {
+      rtyp=fst $1;
+      fname=snd $1;
+      formals=$3;
+      locals=$6;
+      body=$7
+    }
+  }
+
+/* cdecl */
+cdecl:
+  cform LBRACE vdecl_list stmt_list RBRACE
   {
     {
       rtyp=fst $1;
