@@ -149,6 +149,13 @@ expr:
   /* call */
   | ID LPAREN args_opt RPAREN { Call ($1, $3)  }
 
+args_opt:
+ /* nothing */ { [] }
+ | args { $1 }
+
+args:
+ expr { [$1] }
+
 /* arrays */
 /* int[10] my_array; */
 /* str[] my_array = ["a", "b", "c", "d"]; */
