@@ -1,12 +1,13 @@
 (* Abstract Syntax Tree *)
 
-type op = Add | Sub | Times | Divide | Mod | Equal | Neq | Lesser | Greater | GreaterEq | And | Or 
-
+type op = Add | Sub | Times | Divide | Mod | Equal | Neq | Lesser | LesserEq | Greater | GreaterEq | And | Or 
+type redir_op = Input, Output, Append
 type typ = Int | Bool | Str 
 
 type expr = 
 	  Num of int
 	| BoolLit of bool
+        | StrLit of string
 	| Id of string
 	| Binop of expr * op * expr
 	| Assign of string * expr
@@ -31,9 +32,9 @@ type command =
       Command of string * list
 
 type redirect = 
-         InRedirect of command * string
-       | OutRedirect of command * string
-       | AppendRedirect of command * string
+         Redirect of command * redir_op * string
+       | Redirect of command * redir_op * string
+       | Redirect of command * redir_op * string
 
 type bind = typ * string
 

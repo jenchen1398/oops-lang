@@ -10,26 +10,27 @@ open Ast
 %token PLUS MINUS TIMES DIVIDE MOD
 %token LESSER LESSEREQ GREATER GREATEREQ EQ NEQ
 %token ASSIGN AND OR
-%token RREDIR LREDIR APPENDREDIR  PIPE
+%token OUTREDIR INREDIR APPENDREDIR  PIPE
 %token IF ELSE WHILE FOR RETURN
 %token INT BOOL STR 
 %token PRIVATE PUBLIC PROTECTED CLASS ASSERT
 %token <bool> BLIT
 %token <int> NUM
 %token <string> ID
+%token <string> STRLIT
 %token EOF
 
 %start program
 %type <Ast.program> program
 
 %right PIPE
-%right RREDIR APPENDREDIR
-%left LREDIR
+%right OUTREDIR APPENDREDIR
+%left INREDIR
 %right ASSIGN
 %left OR
 %left AND
 %left EQ NEQ
-%left LESSER LESSEREQ GREATER GREATEREQ EQ NEQ
+%left LESSER LESSEREQ GREATER GREATEREQ 
 %left PLUS MINUS 
 %left TIMES DIVIDE 
 %left MOD
@@ -80,18 +81,6 @@ fdecl:
     }
   }
 
-/* cdecl */
-cdecl:
-  cform LBRACE vdecl_list stmt_list RBRACE
-  {
-    {
-      rtyp=fst $1;
-      fname=snd $1;
-      formals=$3;
-      locals=$6;
-      body=$7
-    }
-  }
 
 /* formals_opt */
 formals_opt:
@@ -113,6 +102,7 @@ typ:
 stmt:
     expr SEMI                               { Expr $1      }   
   | arr  SEMI                               { Arr $1   }
+  | redirect SEMI                           { Redirect $1 }
   | LBRACE stmt_list RBRACE                 { Block $2 }
   /* if (condition) { block1} else {block2} */
   /* if (condition) stmt else stmt */
@@ -130,6 +120,7 @@ stmt_list:
 expr:
     NUM              { Num($1)            }
   | BLIT             { BoolLit($1)            }
+  | STRLIT           { StrLit($1)             }
   | ID               { Id($1)                 }
   | expr PLUS   expr { Binop($1, Add,   $3)   }
   | expr MINUS  expr { Binop($1, Sub,   $3)   }
@@ -155,21 +146,23 @@ args_opt:
 
 args:
  expr { [$1] }
+| expr COMMA args { $1::$3 }
 
 /* arrays */
-/* int[10] my_array; */
-/* str[] my_array = ["a", "b", "c", "d"]; */
+/* int[4] my_array; */
 /* my_array = [1, 2, 3, 4];*/
+/* int[] my_arr = [1, 2] */
 /* TODO */
 arr:
   | typ LBRACK NUM RBRACK ID    { ArrInit($1, $3, $5) } 
-  | typ LBRACK RBRACK ID ASSIGN llist { ArrDecl($1, $4, $6) }
-  | ID ASSIGN llist              { ArrAssign($1, $2) }
+  | ID ASSIGN llist              { ArrAssign($1, $3) }
+  | typ LBRACK RBRACK ID ASSIGN llist { ArrDecl($1, $4, $6) } 
 
 elem: 
-  NUM { $1 }
-| BLIT { $1 }
-| ID  { $1 }
+  NUM { Num($1) }
+| BLIT { BoolLit($1) }
+| STRLIT { StrLit($1) }
+| ID  { Id($1) }
 
 elem_list:
  elem { [$1] }
@@ -180,10 +173,10 @@ elements:
 | elem_list   { $1 }
 
 llist:
- LBRACK elements RBRACK { List($1)}
+ LBRACK elements RBRACK { $2 }
 
 /* Pipes and redirection*/
-/*RREDIR LREDIR APPENDREDIR  PIPE */
+/*OUTREDIR INREDIR APPENDREDIR  PIPE */
 command:
 ID elem_list 						{ Command($1, $2) }
 
@@ -192,9 +185,9 @@ redirect_pipe:
 | command PIPE redirect_pipe		{ Pipe($1, $3) }
 
 redirect:
- command LREDIR ID				{ Redirect($1, Input, $3)  }
-| command RREDIR ID				{ Redirect($1, Output, $3) }
-| command APPENDREDIR ID		{ Redirect($1, Append, $3) }
+ command INREDIR ID				{ BinRedirect($1, Input, $3)  }
+| command OUTREDIR ID				{ BinRedirect($1, Output, $3) }
+| command APPENDREDIR ID		{ BinRedirect($1, Append, $3) }
 
 /* PRIVATE PUBLIC PROTECTED CLASS ASSERT */
 /* TODO */

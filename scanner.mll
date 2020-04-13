@@ -1,9 +1,17 @@
 (* Ocamllex scanner for OOPs lang*)
 
-(*{ open Microcparse }*)
+{ 
+open Parser 
+
+let strip_quotes str =
+  match String.length str with
+  | 0 | 1 | 2 -> ""
+  | len -> String.sub str 1 (len - 2)
+}
 
 let digit = ['0'-'9']
 let letter = ['a'-'z' 'A'-'Z']
+let stringliteral = '"'('\\''.'|[^'\\''"'])*'"'
 
 rule token = parse
   [' ' '\t' '\r' '\n'] { token lexbuf } (* Whitespace *)
@@ -26,8 +34,8 @@ rule token = parse
 | "&&"     { AND }
 | "||"     { OR }
 | "|"      { PIPE }
-| ">"      { RREDIR }
-| "<"      { LREDIR }
+| ">"      { OUTREDIR }
+| "<"      { INREDIR }
 | ">>"     { APPENDREDIR }
 | "lt"     { LESSER }
 | "lte"    { LESSEREQ}
@@ -51,6 +59,7 @@ rule token = parse
 | "class"   { CLASS }
 | "assert"   { ASSERT }
 | digit+ as lem  { NUM(int_of_string lem) }
+| stringliteral as lem { STRLIT(strip_quotes lem) }
 | letter (digit | letter | '_')* as lem { ID(lem) }
 | eof { EOF }
 | _ as char { raise (Failure("illegal character " ^ Char.escaped char)) }
