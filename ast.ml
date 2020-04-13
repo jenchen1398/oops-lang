@@ -15,8 +15,20 @@ type expr =
 type stmt =
 	  Expr of expr
 	| Arr of arr
+	| Block of stmt list
 	| If of expr * stmt * stmt
 	| While of expr * stmt
 	| For of expr * expr * expr * stmt
 	| Return of expr
 
+type bind = typ * string
+
+type fdecl = {
+	rtyp: typ;
+	fname: string;
+	formals: bind list;
+	locals: bind list;
+	body: stmt list;
+}
+
+type program = bind list * fdecl list
