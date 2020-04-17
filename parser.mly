@@ -33,12 +33,11 @@ open Ast
 
 /* add function declarations*/
 program:
-  class_decls decls EOF { ($1, fst decls, snd decls) }
+  class_decls decls EOF { ($1, fst $2, snd $2) }
 
 class_decls:
   /*nothing*/ { [] }
   | cdecl class_decls { $1 :: $2 }
-
 
 cdecl:
   modifer CLASS ID LBRACE decls RBRACE
@@ -115,7 +114,7 @@ stmt:
   | RETURN expr SEMI                        { Return $2      }
 
 expr:
-    NUM          { NUM($1)            }
+    NUM          { Num($1)            }
   | BLIT             { BoolLit($1)            }
   | STRLIT           { StrLit($1)            }
   | ID               { Id($1)                 }
@@ -126,7 +125,7 @@ expr:
   | expr MOD    expr { Binop($1, Mod, $3)     }
   | expr EQ     expr { Binop($1, Equal, $3)   }
   | expr NEQ    expr { Binop($1, Neq, $3)     }
-  | expr LESSER     expr { Binop($1, Less,  $3)   }
+  | expr LESSER     expr { Binop($1, Lesser,  $3)   }
   | expr LESSEREQ     expr { Binop($1, LesserEq,  $3)   }
   | expr GREATER     expr { Binop($1, Greater,  $3)   }
   | expr GREATEREQ     expr { Binop($1, GreaterEq,  $3)   }
