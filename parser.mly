@@ -8,18 +8,18 @@ open Ast
 %token EQ NEQ LESSER LESSEREQ GREATER GREATEREQ AND OR
 %token IF ELSE WHILE FOR INT BOOL STR
 /* return, COMMA token */
-%token RETURN COMMA 
+%token RETURN COMMA DOT
 %token CLASS PRIVATE PUBLIC PROTECTED
 %token <int> NUM
 %token <bool> BLIT
 %token <string> STRLIT
 %token <string> ID
+%token <string> OBJECT
 %token EOF
 
 %start program
 %type <Ast.program> program
 
-%left 
 %right ASSIGN
 %left OR
 %left AND
@@ -28,6 +28,7 @@ open Ast
 %left PLUS MINUS
 %left TIMES DIVIDE
 %left MOD
+%left DOT
 
 %%
 
@@ -40,7 +41,7 @@ class_decls:
   | cdecl class_decls { $1 :: $2 }
 
 cdecl:
-  modifer CLASS ID LBRACE decls RBRACE
+  modifer CLASS OBJECT LBRACE decls RBRACE
   {
     {
       cmod = $1;
@@ -69,12 +70,17 @@ vdecl:
     typ ID { ($1, $2) }
 
 typ:
-  primitive { $1 }
+    primitive { $1 }
+  | obj { $1 }
+
+obj:
+  OBJECT { Obj($1) }
 
 primitive:
     INT   { Int   }
   | BOOL  { Bool  }
   | STR   { String }
+
 
 /* fdecl */
 fdecl:
@@ -135,6 +141,7 @@ expr:
   | LPAREN expr RPAREN { $2                   }
   /* call */
   | ID LPAREN args_opt RPAREN { Call ($1, $3)  }
+  | ID DOT ID LPAREN args_opt RPAREN { MethodCall($1, $3, $5) }
 
 
 /* args_opt*/

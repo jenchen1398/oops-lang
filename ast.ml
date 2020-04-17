@@ -1,7 +1,7 @@
 (* Abstract Syntax Tree *)
 
 type op = Add | Sub | Times | Divide | Mod | Equal | Neq | Lesser | LesserEq | Greater | GreaterEq | And | Or 
-type typ = Int | Bool | String
+type typ = Int | Bool | String | Obj of string
 type modifer = Private | Public | Protected
 
 type expr = 
@@ -12,6 +12,7 @@ type expr =
 	| Binop of expr * op * expr
 	| Assign of string * expr
 	| Call of string * expr list
+	| MethodCall of string * string * expr list
 
 type stmt =
 	  Expr of expr
@@ -66,6 +67,8 @@ let rec string_of_expr = function
 	| Assign(v, e) -> v ^ " = " ^ string_of_expr e
 	| Call(f, e1) ->
 		f ^ "(" ^ String.concat ", " (List.map string_of_expr e1) ^ ")"
+	| MethodCall(obj, func, args) ->
+		obj ^ "." ^ func ^ "(" ^ String.concat ", " (List.map string_of_expr args) ^ ")"
 
 let rec string_of_stmt = function
 	  Block(stmts) ->
@@ -82,6 +85,7 @@ let string_of_typ = function
 	  Int -> "int"
 	| Bool -> "bool"
 	| String -> "String"
+	| Obj(o) -> o
 
 let string_of_modifer = function
 		Private -> "private"
