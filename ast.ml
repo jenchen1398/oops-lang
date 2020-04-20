@@ -1,7 +1,7 @@
 (* Abstract Syntax Tree *)
 
 type op = Add | Sub | Times | Divide | Mod | Equal | Neq | Lesser | LesserEq | Greater | GreaterEq | And | Or 
-type typ = Int | Bool | String | Obj of string
+type typ = Int | Bool | String | Obj of string | Array of typ * int
 type modifer = Private | Public | Protected
 
 type expr = 
@@ -9,8 +9,10 @@ type expr =
 	| BoolLit of bool
 	| StrLit of string
 	| Id of string
+	| ArrayLit of expr list
 	| Binop of expr * op * expr
 	| Assign of string * expr
+	| ArrayCall of string * int
 	| Call of string * expr list
 	| MethodCall of string * string * expr list
 
@@ -60,11 +62,13 @@ let rec string_of_expr = function
 	Num(n) -> string_of_int n
 	| BoolLit(true) -> "true"
 	| BoolLit(false) -> "false"
-	| StrLit(s) -> s
+	| StrLit(s) -> "\"" ^ s ^ "\""
 	| Id(s) -> s 
+	| ArrayLit(li) -> "[" ^ String.concat ", " (List.map string_of_expr li) ^ "]"
 	| Binop(e1, o, e2) ->
 		string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
 	| Assign(v, e) -> v ^ " = " ^ string_of_expr e
+	| ArrayCall(v, n) -> v ^ "[" ^ string_of_int n ^ "]"
 	| Call(f, e1) ->
 		f ^ "(" ^ String.concat ", " (List.map string_of_expr e1) ^ ")"
 	| MethodCall(obj, func, args) ->
@@ -81,11 +85,12 @@ let rec string_of_stmt = function
 														string_of_expr e3 ^ ")" ^ string_of_stmt s 
 	| Return(expr) -> "return " ^ string_of_expr expr ^ ";\n"
 
-let string_of_typ = function
+let rec string_of_typ = function
 	  Int -> "int"
 	| Bool -> "bool"
 	| String -> "String"
 	| Obj(o) -> o
+	| Array(t, n) -> string_of_typ t ^ "[" ^ string_of_int n ^ "]"
 
 let string_of_modifer = function
 		Private -> "private"

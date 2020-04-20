@@ -68,6 +68,7 @@ vdecl_list:
 /* int x */
 vdecl:
     typ ID { ($1, $2) }
+  | typ LBRACK NUM RBRACK ID { (Array($1, $3), $5) }
 
 typ:
     primitive { $1 }
@@ -138,10 +139,16 @@ expr:
   | expr AND    expr { Binop($1, And,   $3)   }
   | expr OR     expr { Binop($1, Or,    $3)   }
   | ID ASSIGN expr   { Assign($1, $3)         }
+  | ID LBRACK NUM RBRACK { ArrayCall($1, $3) }
+  | LBRACK expr_list RBRACK { ArrayLit($2) }
   | LPAREN expr RPAREN { $2                   }
   /* call */
   | ID LPAREN args_opt RPAREN { Call ($1, $3)  }
   | ID DOT ID LPAREN args_opt RPAREN { MethodCall($1, $3, $5) }
+
+expr_list:
+    expr { [$1] }
+  | expr COMMA expr_list { $1 :: $3 }
 
 /* args_opt*/
 args_opt:
