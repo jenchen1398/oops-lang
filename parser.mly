@@ -34,14 +34,10 @@ open Ast
 
 /* add function declarations*/
 program:
-  class_decls decls EOF { ($1, fst $2, snd $2) }
-
-class_decls:
-  /*nothing*/ { [] }
-  | cdecl class_decls { $1 :: $2 }
+  cdecl_list decls EOF { $1 }
 
 cdecl:
-  modifer CLASS OBJECT LBRACE decls RBRACE
+  modifier CLASS OBJECT LBRACE vdecl_list fdecl_list  RBRACE
   {
     {
       cmod = $1;
@@ -51,7 +47,11 @@ cdecl:
     }
   }
 
-modifer:
+cdecl_list:
+  /*nothing*/ { [] }
+  | cdecl cdecl_list { $1 :: $2 }
+
+modifier:
    PRIVATE { Private }
  | PUBLIC { Public }
  | PROTECTED { Protected }
@@ -59,11 +59,13 @@ modifer:
 decls:
    /* nothing */ { ([], [])              }
  | vdecl SEMI decls { (($1 :: fst $3), snd $3) }
+ | adecl SEMI decls { (($1 :: fst $3), snd $3) }
  | fdecl decls { (fst $2, ($1 :: snd $2)) }
 
 vdecl_list:
   /*nothing*/ { [] }
   | vdecl SEMI vdecl_list  {  $1 :: $3 }
+  | adecl SEMI vdecl_list  { $1 :: $3 }
 
 /* int x */
 vdecl:
@@ -81,6 +83,9 @@ primitive:
   | BOOL  { Bool  }
   | STR   { String }
 
+fdecl_list:
+  /*nothing*/ { [] }
+  | fdecl SEMI fdecl_list  {  $1 :: $3 }
 
 /* fdecl */
 fdecl:
@@ -138,10 +143,18 @@ expr:
   | expr AND    expr { Binop($1, And,   $3)   }
   | expr OR     expr { Binop($1, Or,    $3)   }
   | ID ASSIGN expr   { Assign($1, $3)         }
+  | ID ASSIGN LBRACK expr_list RBRACK {Assign($1, $4)    }
   | LPAREN expr RPAREN { $2                   }
   /* call */
   | ID LPAREN args_opt RPAREN { Call ($1, $3)  }
   | ID DOT ID LPAREN args_opt RPAREN { MethodCall($1, $3, $5) }
+
+expr_list:
+  /*nothing*/ { [] }
+  | expr COMMA expr_list { $1 :: $3}
+
+adecl:
+ primitive LBRACK NUM RBRACK ID { Array($1, $3, $5) }
 
 
 /* args_opt*/
