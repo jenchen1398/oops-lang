@@ -120,7 +120,7 @@ stmt:
   | RETURN expr SEMI                        { Return $2      }
 
 expr:
-    NUM          { Num($1)            }
+    NUM              { Num($1)            }
   | BLIT             { BoolLit($1)            }
   | STRLIT           { StrLit($1)            }
   | ID               { Id($1)                 }
@@ -142,7 +142,6 @@ expr:
   /* call */
   | ID LPAREN args_opt RPAREN { Call ($1, $3)  }
   | ID DOT ID LPAREN args_opt RPAREN { MethodCall($1, $3, $5) }
-
 
 /* args_opt*/
 args_opt:
