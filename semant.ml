@@ -166,6 +166,17 @@ let check (classes, globals, functions) =
       sbody = check_stmt_list func.body
     }
   in
+  let check_classes clist =
+    let check_names (cl : cdecl list) =
+      let rec dups = function
+          [] -> ()
+        |	(c1 :: c2 :: _) when c1.cname = c2.cname ->
+          raise (Failure ("duplicate class name " ^ c1.cname))
+        | _ :: t -> dups t
+      in dups (List.sort (fun a b -> compare a.cname b.cname) cl)
+  in
+  check_names clist;
+
   let check_class c =
     check_binds "class" c.vars;
     {
@@ -175,4 +186,6 @@ let check (classes, globals, functions) =
       sfuncs = List.map check_func c.funcs
     }
   in
-  (List.map check_class classes, globals, List.map check_func functions)
+  (List.map check_class clist)
+  in
+  (check_classes classes, globals, List.map check_func functions)
