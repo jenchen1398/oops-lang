@@ -6,10 +6,12 @@ type sexpr = typ * sx
 and sx =
     SNum of int
   | SBoolLit of bool
-  | SId of string
   | SStrLit of string
+  | SId of string
+  | SArrayLit of expr list
   | SBinop of sexpr * op * sexpr
   | SAssign of string * sexpr
+  | SArrayCall of string * int  
   (* call *)
   | SCall of string * sexpr list
   | SMethodCall of string * string * sexpr list
@@ -50,9 +52,11 @@ let rec string_of_sexpr (t, e) =
       | SBoolLit(false) -> "false"
       | SStrLit(str) -> str
       | SId(s) -> s
+      | SArrayLit(li) -> "[" ^ String.concat ", " (List.map string_of_expr li) ^ "]"
       | SBinop(e1, o, e2) ->
         string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
-      | SAssign(v, e) -> v ^ " = " ^ string_of_sexpr e
+      | SAssign(v, e) -> v ^ " = " ^ string_of_sexpr e 	
+      | SArrayCall(v, n) -> v ^ "[" ^ string_of_int n ^ "]"
       | SCall(f, el) ->
           f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
       | SMethodCall(obj, func, args) ->
