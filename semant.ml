@@ -8,7 +8,7 @@ module StringMap = Map.Make(String)
 (* Semantic checking of the AST. Returns an SAST if successful,
    throws an exception if something is wrong.
 
-   Check each global variable, then check each function *)
+   Check each global variable, then check each function, then check each class *)
 
 let check (classes, globals, functions) =
 
@@ -31,7 +31,7 @@ let check (classes, globals, functions) =
       rtyp = Int;
       fname = "print";
       formals = [(Int, "x")];
-      locals = []; body = [] } StringMap.empty
+      locals = []; body = [] } StringMap.empty 
   in
 
   (* Add function name to symbol table *)
@@ -57,26 +57,26 @@ let check (classes, globals, functions) =
   in
 
   let _ = find_func "main" in (* Ensure "main" is defined *)
+  
+  (* Raise an exception if the given rvalue type cannot be assigned to
+     the given lvalue type *)
+  let check_assign lvaluet rvaluet err =
+    if lvaluet = rvaluet then lvaluet else raise (Failure err)
+  in
 
   let check_func func =
     (* Make sure no formals or locals are void or duplicates *)
     check_binds "formal" func.formals;
     check_binds "local" func.locals;
 
-    (* Raise an exception if the given rvalue type cannot be assigned to
-       the given lvalue type *)
-    let check_assign lvaluet rvaluet err =
-      if lvaluet = rvaluet then lvaluet else raise (Failure err)
-    in
-
     (* Build local symbol table of variables for this function *)
-    let symbols = List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
+    let func_symbols = List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
         StringMap.empty (globals @ func.formals @ func.locals )
     in
 
     (* Return a variable from our local symbol table *)
     let type_of_identifier s =
-      try StringMap.find s symbols
+      try StringMap.find s func_symbols
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
 
@@ -127,7 +127,9 @@ let check (classes, globals, functions) =
           in
           let args' = List.map2 check_call fd.formals args
           in (fd.rtyp, SCall(fname, args'))
-      | MethodCall(cname, mname, args) -> (Int, SMethodCall(cname, mname, []))
+      | MethodCall(cname, mname, args) -> (Int, SMethodCall(cname, mname, [])) (* TODO check args are valid and that method is within the class *)
+      | ArrayLit(args) ->
+      | ArrayCall(var, e) ->
     in
 
     let check_bool_expr e =
@@ -166,9 +168,64 @@ let check (classes, globals, functions) =
       sbody = check_stmt_list func.body
     }
   in
-  let class_names = (List.sort (fun a b -> compare a.cname b.cname) classes)
+  let checked_funcs = List.map check_func functions
   in
-  let check_classes clist =
+
+  (* Check Classes *)
+  let class_sym_tab = StringMap.empty 
+  in
+
+  (* Add class name to symbol table *)
+  let add_class map cd =
+    let dup_err = "duplicate class " ^ cd.fname
+    and make_err er = raise (Failure er)
+    and cname = cd.fname (* Name of the class *)
+    in match cd with (* No duplicate classes or redefinitions of built-ins *)
+      _ when StringMap.mem cname map -> make_err dup_err
+    | _ ->  StringMap.add cname cd map
+  in
+
+  (* Collect all class names into one symbol table *)
+  let class_decls = List.fold_left add_class class_sym_tab classes
+  in
+
+  (* Return a class from our symbol table *)
+  let find_class s =
+    try StringMap.find s class_decls
+    with Not_found -> raise (Failure ("unrecognized function " ^ s))
+  in
+
+  let check_class c =
+    (* Make sure no class variables or methods are duplicate *)
+    check_binds "class" c.vars;
+    check_binds "methods" c.funcs;
+    
+    (* Build local symbol table of variables/methods (any member) for this class *)
+    let class_symbols = List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
+        StringMap.empty (globals @ functions @ class.vars @ class.funcs) (* !!! *)
+    in
+
+    (* Return a member/variable from our local symbol table *)
+    let type_of_member s =
+      try StringMap.find s class_symbols
+      with Not_found -> raise (Failure ("undeclared member " ^ s))
+    in
+
+    (* TODO check variables are valid tyeps and expressions; check member functions are valid using check_func; check statements inside class are calling valid global functions *)
+
+    {
+      scmod = c.cmod;
+      scname = c.cname;
+      svars = c.vars;
+      sfuncs = List.map check_func c.funcs
+    }
+in
+(globals, checked_funcs, List.map check_class clist)
+
+ (* let class_names = (List.sort (fun a b -> compare a.cname b.cname) classes)
+  in *)
+  (*check_classes classes, globals, *)
+  (* let check_classes clist =
     let check_names (cl : cdecl list) =
       let rec dups = function
           [] -> ()
@@ -177,17 +234,4 @@ let check (classes, globals, functions) =
         | _ :: t -> dups t
       in dups class_names
     in
-    check_names clist;
-
-    let check_class c =
-      check_binds "class" c.vars;
-      {
-        scmod = c.cmod;
-        scname = c.cname;
-        svars = c.vars;
-        sfuncs = List.map check_func c.funcs
-      }
-    in
-    (List.map check_class clist)
-  in
-  (check_classes classes, globals, List.map check_func functions)
+    check_names clist; *)
