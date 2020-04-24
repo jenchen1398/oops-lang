@@ -35,7 +35,7 @@ type sfdecl = {
 }
 
 type scdecl = {
-	scmod: modifer;
+	scmod: modifier;
 	scname: string;
 	svars: bind list;
 	sfuncs: sfdecl list;
@@ -83,7 +83,7 @@ let string_of_sfdecl fdecl =
   "}\n"
 
 let string_of_scdecl cdecl =
-	string_of_modifer cdecl.scmod ^ " class " ^ cdecl.scname ^ " {\n" ^
+	string_of_modifier cdecl.scmod ^ " class " ^ cdecl.scname ^ " {\n" ^
 	String.concat "" (List.map string_of_vdecl cdecl.svars) ^
 	String.concat "\n" (List.map string_of_sfdecl cdecl.sfuncs) ^
 	"}\n"

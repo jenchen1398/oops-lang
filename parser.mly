@@ -41,7 +41,7 @@ class_decls:
   | cdecl class_decls { $1 :: $2 }
 
 cdecl:
-  modifer CLASS OBJECT LBRACE decls RBRACE
+  modifier CLASS OBJECT LBRACE decls RBRACE
   {
     {
       cmod = $1;
@@ -51,7 +51,7 @@ cdecl:
     }
   }
 
-modifer:
+modifier:
    PRIVATE { Private }
  | PUBLIC { Public }
  | PROTECTED { Protected }
