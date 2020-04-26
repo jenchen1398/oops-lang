@@ -6,11 +6,12 @@ type sexpr = typ * sx
 and sx =
     SNum of int
   | SBoolLit of bool
-  | SId of string
   | SArrayLit of sexpr list
   | SStrLit of string
+  | SId of string
   | SBinop of sexpr * op * sexpr
   | SAssign of string * sexpr
+  | SArrayCall of string * int  
   (* call *)
   | SCall of string * sexpr list
   | SArrayCall of string * int
@@ -36,7 +37,7 @@ type sfdecl = {
 }
 
 type scdecl = {
-	scmod: modifer;
+	scmod: modifier;
 	scname: string;
 	svars: bind list;
 	sfuncs: sfdecl list;
@@ -86,7 +87,7 @@ let string_of_sfdecl fdecl =
   "}\n"
 
 let string_of_scdecl cdecl =
-	string_of_modifer cdecl.scmod ^ " class " ^ cdecl.scname ^ " {\n" ^
+	string_of_modifier cdecl.scmod ^ " class " ^ cdecl.scname ^ " {\n" ^
 	String.concat "" (List.map string_of_vdecl cdecl.svars) ^
 	String.concat "\n" (List.map string_of_sfdecl cdecl.sfuncs) ^
 	"}\n"

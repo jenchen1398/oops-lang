@@ -43,5 +43,5 @@ Testing the Semantics:
     }
 
 TO-DO:
-    Scanner/Parser: arrays, recursive method calls (e.g. object.foo().foo().foo();), 
+    Scanner/Parser: recursive method calls (e.g. object.foo().foo().foo();), 
     Semantics: check that object types match a declared class name, local and global variable scopes for classes ... // add more

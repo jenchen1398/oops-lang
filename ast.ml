@@ -2,7 +2,7 @@
 
 type op = Add | Sub | Times | Divide | Mod | Equal | Neq | Lesser | LesserEq | Greater | GreaterEq | And | Or 
 type typ = Int | Bool | String | Obj of string | Array of typ * int
-type modifer = Private | Public | Protected
+type modifier = Private | Public | Protected
 
 type expr = 
 	  Num of int
@@ -36,7 +36,7 @@ type fdecl = {
 }
 
 type cdecl = {
-	cmod: modifer;
+	cmod: modifier;
 	cname: string;
 	vars: bind list;
 	funcs: fdecl list;
@@ -95,7 +95,7 @@ let rec string_of_typ = function
 	| Obj(o) -> o
 	| Array(t, n) -> string_of_typ t ^ "[" ^ string_of_int n ^ "]"
 
-let string_of_modifer = function
+let string_of_modifier = function
 		Private -> "private"
 	| Public -> "public"
 	| Protected -> "protected"
@@ -111,7 +111,7 @@ let string_of_fdecl fdecl =
 		"}\n"
 
 let string_of_cdecl cdecl =
-	string_of_modifer cdecl.cmod ^ " class " ^ cdecl.cname ^ " {\n" ^
+	string_of_modifier cdecl.cmod ^ " class " ^ cdecl.cname ^ " {\n" ^
 	String.concat "" (List.map string_of_vdecl cdecl.vars) ^
 	String.concat "\n" (List.map string_of_fdecl cdecl.funcs) ^
 	"}\n"
