@@ -53,6 +53,7 @@ rule token = parse
 | "public" { PUBLIC }
 | "protected" { PROTECTED }
 | "class"   { CLASS }
+| "new" { NEW }
 | ['A'-'Z'] letter* as lem { OBJECT(lem) }
 | digit+ as lem  { NUM(int_of_string lem) }
 | stringliteral as lem { STRLIT(strip_quotes lem) }

@@ -9,7 +9,7 @@ open Ast
 %token IF ELSE WHILE FOR INT BOOL STR
 /* return, COMMA token */
 %token RETURN COMMA DOT
-%token CLASS PRIVATE PUBLIC PROTECTED
+%token CLASS PRIVATE PUBLIC PROTECTED NEW
 %token <int> NUM
 %token <bool> BLIT
 %token <string> STRLIT
@@ -41,7 +41,7 @@ class_decls:
   | cdecl class_decls { $1 :: $2 }
 
 cdecl:
-  modifer CLASS OBJECT LBRACE decls RBRACE
+  modifer CLASS OBJECT LBRACE decls cons_list RBRACE
   {
     {
       cmod = $1;
@@ -50,6 +50,23 @@ cdecl:
       funcs = snd $5
     }
   }
+
+cons:
+  OBJECT LPAREN args_opt RPAREN LBRACE vdecl_list stmt_list RBRACE
+  {
+    {
+      rtyp=$2;
+      fname=$2;
+      formals=$4;
+      locals=$7;
+      body=$8
+    }
+  }
+
+cons_list:
+    cons { $1 }
+  | cons cons_list { $1 :: $2 }
+
 
 modifer:
    PRIVATE { Private }
@@ -145,7 +162,7 @@ expr:
   /* call */
   | ID LPAREN args_opt RPAREN { Call ($1, $3)  }
   | ID DOT ID LPAREN args_opt RPAREN { MethodCall($1, $3, $5) }
-  | OBJECT LPAREN args_opt RPAREN { Constructor($1, $3) }
+  | NEW OBJECT LPAREN args_opt RPAREN { Constructor($2, $4) }
 
 expr_list:
     expr { [$1] }
