@@ -128,6 +128,18 @@ let check (classes, globals, functions) =
           let args' = List.map2 check_call fd.formals args
           in (fd.rtyp, SCall(fname, args'))
       | MethodCall(cname, mname, args) -> (Int, SMethodCall(cname, mname, []))
+      | ArrayCall(v, n) -> (type_of_identifier v, SArrayCall(v, n))
+      | ArrayLit(li) -> let check_array (al : expr list) =
+                            let rec dups = function
+                                [] -> ()
+                              |	(a1 :: a2 :: _) when fst (check_expr a1) != fst (check_expr a2)  ->
+                                raise (Failure ("mismatched types of " ^ string_of_typ (fst (check_expr a1) ) ^ " and " ^ string_of_typ (fst (check_expr a2)) ^ " in array"))
+                              | _ :: t -> dups t
+                            in dups al
+                          in
+                          check_array li;
+                          let checked_li = List.map check_expr li
+                          in (Array(fst (List.hd checked_li), List.length checked_li), SArrayLit(checked_li) )
     in
 
     let check_bool_expr e =
