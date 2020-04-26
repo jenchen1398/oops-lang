@@ -145,6 +145,7 @@ expr:
   /* call */
   | ID LPAREN args_opt RPAREN { Call ($1, $3)  }
   | ID DOT ID LPAREN args_opt RPAREN { MethodCall($1, $3, $5) }
+  | OBJECT LPAREN args_opt RPAREN { Constructor($1, $3) }
 
 expr_list:
     expr { [$1] }

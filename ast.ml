@@ -15,6 +15,7 @@ type expr =
 	| ArrayCall of string * int
 	| Call of string * expr list
 	| MethodCall of string * string * expr list
+	| Constructor of string * expr list
 
 type stmt =
 	  Expr of expr
@@ -73,6 +74,8 @@ let rec string_of_expr = function
 		f ^ "(" ^ String.concat ", " (List.map string_of_expr e1) ^ ")"
 	| MethodCall(obj, func, args) ->
 		obj ^ "." ^ func ^ "(" ^ String.concat ", " (List.map string_of_expr args) ^ ")"
+	| Constructor(obj, args) ->
+		obj ^ "(" ^ String.concat ", " (List.map string_of_expr args) ^ ")"
 
 let rec string_of_stmt = function
 	  Block(stmts) ->

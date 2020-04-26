@@ -15,6 +15,7 @@ and sx =
   | SCall of string * sexpr list
   | SArrayCall of string * int
   | SMethodCall of string * string * sexpr list
+  | SConstructor of string * sexpr list
 
 type sstmt =
     SBlock of sstmt list
@@ -61,6 +62,8 @@ let rec string_of_sexpr (t, e) =
           f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
       | SMethodCall(obj, func, args) ->
           obj ^ "." ^ func ^ "(" ^ String.concat ", " (List.map string_of_sexpr args) ^ ")"
+      | SConstructor(obj, args) ->
+          obj ^ "(" ^ String.concat ", " (List.map string_of_sexpr args) ^ ")"
   ) ^ ")"
 
 let rec string_of_sstmt = function

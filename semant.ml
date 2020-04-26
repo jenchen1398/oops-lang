@@ -24,6 +24,21 @@ let check (classes, globals, functions) =
 
   (* Make sure no globals duplicate *)
   check_binds "global" globals;
+  
+  let add_class map cl =
+    let dup_err = "duplicate class " ^ cl.cname
+    and make_err er = raise (Failure er)
+    and cname = cl.cname (* Name of the class *)
+    in match cl with (* No duplicate classes *)
+      _ when StringMap.mem cname map -> make_err dup_err
+    | _ ->  StringMap.add cname cl map
+  in
+  let class_decls = List.fold_left add_class StringMap.empty classes
+  in
+  let find_class cname =
+    try StringMap.find cname class_decls
+    with Not_found -> raise (Failure ("unrecognized class " ^ cname))
+  in 
 
   (* Collect function declarations for built-in functions: no bodies *)
   let built_in_decls =
@@ -127,7 +142,6 @@ let check (classes, globals, functions) =
           in
           let args' = List.map2 check_call fd.formals args
           in (fd.rtyp, SCall(fname, args'))
-      | MethodCall(cname, mname, args) -> (Int, SMethodCall(cname, mname, []))
       | ArrayCall(v, n) -> (type_of_identifier v, SArrayCall(v, n))
       | ArrayLit(li) -> let check_array (al : expr list) =
                             let rec dups = function
@@ -140,6 +154,11 @@ let check (classes, globals, functions) =
                           check_array li;
                           let checked_li = List.map check_expr li
                           in (Array(fst (List.hd checked_li), List.length checked_li), SArrayLit(checked_li) )
+      | MethodCall(cname, mname, args) -> (Int, SMethodCall(cname, mname, []))
+      (* check for valid expressions and valid class *)
+      | Constructor(obj, args) -> find_class obj;
+                          (Obj(obj), SConstructor(obj, List.map check_expr args))
+                          
     in
 
     let check_bool_expr e =
