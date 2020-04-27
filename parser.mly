@@ -41,11 +41,7 @@ class_decls:
   | cdecl class_decls { $1 :: $2 }
 
 cdecl:
-<<<<<<< HEAD
-  modifer CLASS OBJECT LBRACE decls cons_list RBRACE
-=======
-  modifier CLASS OBJECT LBRACE decls RBRACE
->>>>>>> d8d41ff209c8bcac8cf7d64f37e66e5c2f213550
+  modifier CLASS OBJECT LBRACE decls cons_list RBRACE
   {
     {
       cmod = $1;
@@ -55,16 +51,15 @@ cdecl:
     }
   }
 
-<<<<<<< HEAD
 cons:
   OBJECT LPAREN args_opt RPAREN LBRACE vdecl_list stmt_list RBRACE
   {
     {
-      rtyp=$2;
-      fname=$2;
-      formals=$4;
-      locals=$7;
-      body=$8
+      rtyp=$1;
+      fname=$1;
+      formals=$3;
+      locals=$6;
+      body=$7
     }
   }
 
@@ -73,10 +68,7 @@ cons_list:
   | cons cons_list { $1 :: $2 }
 
 
-modifer:
-=======
 modifier:
->>>>>>> d8d41ff209c8bcac8cf7d64f37e66e5c2f213550
    PRIVATE { Private }
  | PUBLIC { Public }
  | PROTECTED { Protected }
