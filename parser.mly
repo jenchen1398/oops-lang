@@ -9,7 +9,7 @@ open Ast
 %token IF ELSE WHILE FOR INT BOOL STR
 /* return, COMMA token */
 %token RETURN COMMA DOT
-%token CLASS PRIVATE PUBLIC PROTECTED NEW
+%token CLASS PRIVATE PUBLIC PROTECTED NEW CONS
 %token <int> NUM
 %token <bool> BLIT
 %token <string> STRLIT
@@ -47,19 +47,20 @@ cdecl:
       cmod = $1;
       cname = $3;
       vars = fst $5;
-      funcs = snd $5
+      funcs = snd $5;
+      cons = $6
     }
   }
 
 cons:
-  OBJECT LPAREN args_opt RPAREN LBRACE vdecl_list stmt_list RBRACE
+  CONS OBJECT LPAREN args_opt RPAREN LBRACE vdecl_list stmt_list RBRACE
   {
     {
-      rtyp=$1;
-      fname=$1;
-      formals=$3;
-      locals=$6;
-      body=$7
+      rtyp=$2;
+      fname=$2;
+      formals=$4;
+      locals=$7;
+      body=$8
     }
   }
 

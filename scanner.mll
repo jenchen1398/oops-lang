@@ -54,6 +54,7 @@ rule token = parse
 | "protected" { PROTECTED }
 | "class"   { CLASS }
 | "new" { NEW }
+| "cons" { CONS } (* To do raphnano: remove hack*)
 | ['A'-'Z'] letter* as lem { OBJECT(lem) }
 | digit+ as lem  { NUM(int_of_string lem) }
 | stringliteral as lem { STRLIT(strip_quotes lem) }
