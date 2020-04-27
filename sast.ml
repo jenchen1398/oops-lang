@@ -11,7 +11,6 @@ and sx =
   | SId of string
   | SBinop of sexpr * op * sexpr
   | SAssign of string * sexpr
-  | SArrayCall of string * int  
   (* call *)
   | SCall of string * sexpr list
   | SArrayCall of string * int

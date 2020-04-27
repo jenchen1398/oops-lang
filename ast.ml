@@ -1,7 +1,7 @@
 (* Abstract Syntax Tree *)
 
 type op = Add | Sub | Times | Divide | Mod | Equal | Neq | Lesser | LesserEq | Greater | GreaterEq | And | Or 
-type typ = Int | Bool | String | Obj of string | Array of typ * int
+type typ = Int | Bool | String | Array of typ * int | Obj of string 
 type modifier = Private | Public | Protected
 
 type expr = 
@@ -35,11 +35,19 @@ type fdecl = {
 	body: stmt list;
 }
 
+type con = {
+	con_name: string;
+	args: bind list;
+	locals: bind list;
+	body: stmt list;
+}
+
 type cdecl = {
 	cmod: modifier;
 	cname: string;
 	vars: bind list;
 	funcs: fdecl list;
+        cons: con list;
 }
 
 type program = cdecl list * bind list * fdecl list
@@ -110,10 +118,18 @@ let string_of_fdecl fdecl =
 		String.concat "" (List.map string_of_stmt fdecl.body) ^
 		"}\n"
 
+let string_of_con con = 
+		con.con_name ^ "(" ^ String.concat ", " (List.map snd con.args) ^
+		")\n{\n" ^
+		String.concat "" (List.map string_of_vdecl con.locals) ^
+		String.concat "" (List.map string_of_stmt con.body) ^
+		"}\n"
+
 let string_of_cdecl cdecl =
 	string_of_modifier cdecl.cmod ^ " class " ^ cdecl.cname ^ " {\n" ^
 	String.concat "" (List.map string_of_vdecl cdecl.vars) ^
 	String.concat "\n" (List.map string_of_fdecl cdecl.funcs) ^
+	String.concat "\n" (List.map string_of_con cdecl.cons) ^
 	"}\n"
 
 let string_of_program (classes, vars, funcs) = 

@@ -158,18 +158,18 @@ let check (classes, globals, functions) =
       (* check for valid expressions and valid class *)
       | Constructor(obj, args) -> let class_dict = find_class obj in
                     let cons_list = class_dict.cons in
-                        let check_con_params (args_l: expr list, forms_l: expr list) =
-                            let rec con_args con_formals  = function
+                        let check_con_params (my_con: con) =
+                            let rec check_con = function
                                 [] , [] -> ()
-                              | [], _ -> raise (Failure(" Mismatched number of arguments in constructor " ^ string_of_typ obj ))
-                              | _, [] -> raise (Failure(" Mismatched number of arguments in constructor " ^ string_of_typ obj ))
-                              | (h_arg:: t_arg), (h_form:: t_form) -> if fst (check_expr h_arg) != fst (check_expr h_form)  then
-                                raise (Failure ("mismatched types of " ^ string_of_typ (fst (check_expr h_arg) ) ^ " and " ^ string_of_typ (fst (check_expr h_form)) ^ " in array"))
-                                else con_args t_arg t_form;;
-                            in con_args args_l forms_l
+                              | [], _ -> raise (Failure(" Mismatched number of arguments in constructor " ^ obj ))
+                              | _, [] -> raise (Failure(" Mismatched number of arguments in constructor " ^ obj ))
+                              | (h_arg:: t_arg), (h_form:: t_form) -> if fst (check_expr h_arg) != fst h_form  then
+                                raise (Failure ("mismatched types of " ^ string_of_typ (fst (check_expr h_arg) ) ^ " and " ^ string_of_typ (fst h_form) ^ " in array"))
+                                else check_con (t_arg, t_form)
+                            in check_con (args, my_con.args)
                          in
-                          check_con_params args con.formals;
-                            (Obj(obj), SConstructor(obj, List.map check_expr arg))
+                          List.map check_con_params cons_list; 
+                            (Obj(obj), SConstructor(obj, List.map check_expr args))
                           
     in
 

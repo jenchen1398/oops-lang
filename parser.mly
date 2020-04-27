@@ -52,21 +52,20 @@ cdecl:
     }
   }
 
-cons:
-  CONS OBJECT LPAREN args_opt RPAREN LBRACE vdecl_list stmt_list RBRACE
+con:
+  CONS OBJECT LPAREN formals_opt RPAREN LBRACE vdecl_list stmt_list RBRACE
   {
     {
-      rtyp=$2;
-      fname=$2;
-      formals=$4;
+      con_name=$2;
+      args=$4;
       locals=$7;
       body=$8
     }
   }
 
 cons_list:
-    cons { $1 }
-  | cons cons_list { $1 :: $2 }
+    con { [$1] }
+  | con cons_list { $1 :: $2 }
 
 
 modifier:
@@ -158,16 +157,12 @@ expr:
   | expr OR     expr { Binop($1, Or,    $3)   }
   | ID ASSIGN expr   { Assign($1, $3)         }
   | ID LBRACK NUM RBRACK { ArrayCall($1, $3) }
-  | LBRACK expr_list RBRACK { ArrayLit($2) }
+  | LBRACK args RBRACK { ArrayLit($2) }
   | LPAREN expr RPAREN { $2                   }
   /* call */
   | ID LPAREN args_opt RPAREN { Call ($1, $3)  }
   | ID DOT ID LPAREN args_opt RPAREN { MethodCall($1, $3, $5) }
   | NEW OBJECT LPAREN args_opt RPAREN { Constructor($2, $4) }
-
-expr_list:
-    expr { [$1] }
-  | expr COMMA expr_list { $1 :: $3 }
 
 /* args_opt*/
 args_opt:
