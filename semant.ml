@@ -154,8 +154,28 @@ let check (classes, globals, functions) =
                           check_array li;
                           let checked_li = List.map check_expr li
                           in (Array(fst (List.hd checked_li), List.length checked_li), SArrayLit(checked_li) )
-      | MethodCall(cname, mname, args) -> (Int, SMethodCall(cname, mname, []))
-      (* check for valid expressions and valid class *)
+      | MethodCall(cvar, mname, args) ->
+      (* check for valid expressions and valid class
+       get class type
+       check cvar is in the symbol table
+       check mname is a valid method of that class type
+       check args match
+      *)
+       let ctype = string_of_typ (type_of_identifier cvar) in
+       let cdict = find_class ctype in
+       let cmethods = cdict.funcs in
+        let check_args_f (fd : fdecl ) =
+            let rec comp_args = function
+                [], [] -> ()
+                | [], _ -> raise (Failure(" Mismatched number of arguments in method " ^ mname ))
+                | _, [] -> raise (Failure(" Mismatched number of arguments in method " ^ mname ))
+                | (h_arg:: t_arg), (h_form:: t_form) -> if fst (check_expr h_arg) != fst h_form  then
+                raise (Failure ("mismatched types of " ^ string_of_typ (fst (check_expr h_arg) ) ^ " and " ^ string_of_typ (fst h_form) ^ " in array"))
+                else comp_args (t_arg, t_form)
+            in comp_args (args, fd.formals)
+          in
+            List.map check_args_f cmethods;
+             (Obj(ctype), SMethodCall(cvar, mname, List.map check_expr args))
       | Constructor(obj, args) -> let class_dict = find_class obj in
                     let cons_list = class_dict.cons in
                         let check_con_params (my_con: con) =
