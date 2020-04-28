@@ -170,7 +170,7 @@ let check (classes, globals, functions) =
                 | [], _ -> raise (Failure(" Mismatched number of arguments in method " ^ mname ))
                 | _, [] -> raise (Failure(" Mismatched number of arguments in method " ^ mname ))
                 | (h_arg:: t_arg), (h_form:: t_form) -> if fst (check_expr h_arg) != fst h_form  then
-                raise (Failure ("mismatched types of " ^ string_of_typ (fst (check_expr h_arg) ) ^ " and " ^ string_of_typ (fst h_form) ^ " in array"))
+                raise (Failure ("mismatched types of " ^ string_of_typ (fst (check_expr h_arg) ) ^ " and " ^ string_of_typ (fst h_form) ^ " in method"))
                 else comp_args (t_arg, t_form)
             in comp_args (args, fd.formals)
           in
@@ -184,7 +184,7 @@ let check (classes, globals, functions) =
                               | [], _ -> raise (Failure(" Mismatched number of arguments in constructor " ^ obj ))
                               | _, [] -> raise (Failure(" Mismatched number of arguments in constructor " ^ obj ))
                               | (h_arg:: t_arg), (h_form:: t_form) -> if fst (check_expr h_arg) != fst h_form  then
-                                raise (Failure ("mismatched types of " ^ string_of_typ (fst (check_expr h_arg) ) ^ " and " ^ string_of_typ (fst h_form) ^ " in array"))
+                                raise (Failure ("mismatched types of " ^ string_of_typ (fst (check_expr h_arg) ) ^ " and " ^ string_of_typ (fst h_form) ^ " in constructor"))
                                 else check_con (t_arg, t_form)
                             in check_con (args, my_con.args)
                          in
