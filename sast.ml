@@ -14,7 +14,6 @@ and sx =
   | SArrayCall of string * int  
   (* call *)
   | SCall of string * sexpr list
-  | SArrayCall of string * int
   | SMethodCall of string * string * sexpr list
   | SConstructor of string * sexpr list
 

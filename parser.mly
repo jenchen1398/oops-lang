@@ -41,7 +41,7 @@ class_decls:
   | cdecl class_decls { $1 :: $2 }
 
 cdecl:
-  modifier CLASS OBJECT LBRACE decls cons_list RBRACE
+  modifier CLASS OBJECT LBRACE decls RBRACE
   {
     {
       cmod = $1;
@@ -50,23 +50,6 @@ cdecl:
       funcs = snd $5
     }
   }
-
-cons:
-  OBJECT LPAREN args_opt RPAREN LBRACE vdecl_list stmt_list RBRACE
-  {
-    {
-      rtyp=$1;
-      fname=$1;
-      formals=$3;
-      locals=$6;
-      body=$7
-    }
-  }
-
-cons_list:
-    cons { $1 }
-  | cons cons_list { $1 :: $2 }
-
 
 modifier:
    PRIVATE { Private }
