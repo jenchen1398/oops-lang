@@ -1,0 +1,10 @@
+int main(){
+    int a;
+    int b;
+    str c;
+    c = "Hi";
+    a = 10;
+    b = 20;
+    print(a + b);
+    return a + b;
+}
