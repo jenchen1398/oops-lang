@@ -5,6 +5,15 @@ int main(){
     c = "Hi";
     a = 10;
     b = 20;
+    if(a lt b){
+        print(a);
+    }else{
+        print(b);
+    }
     print(a + b);
+    print(a * b);
+    print(b / a);
+    print(b % a);
+    print(b - a);
     return a + b;
 }
