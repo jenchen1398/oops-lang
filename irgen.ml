@@ -62,7 +62,7 @@ let translate (classes, globals, functions) =
       StringMap.add name (L.define_function name ftype the_module, fdecl) m in
     List.fold_left function_decl StringMap.empty functions in
 
-
+  (* Define each class (functions and variables) *)
   let class_map : ((L.llvalue * sfdecl) StringMap.t * L.llvalue StringMap.t) StringMap.t = 
 
     let class_def c_map cdecl = 
@@ -134,7 +134,7 @@ let translate (classes, globals, functions) =
     L.build_in_bounds_gep str [| null |] "String" builder in 
 
     (* Construct code for an expression; return its value *)
-    let rec build_expr builder ((_, e) : sexpr) = match e with
+    let rec build_expr builder ((ty, e) : sexpr) = match e with
         SNum i  -> L.const_int i32_t i
       | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)
       | SStrLit str -> build_string str builder
@@ -167,6 +167,14 @@ let translate (classes, globals, functions) =
         let llargs = List.rev (List.map (build_expr builder) (List.rev args)) in
         let result = f ^ "_result" in
         L.build_call fdef (Array.of_list llargs) result builder
+      | SMethodCall (cname, fname, args) ->
+        let (func_map, vars_map) = StringMap.find cname class_map in 
+        let (fdef, fedcl) = StringMap.find fname func_map in 
+        let llargs = List.rev (List.map (build_expr builder) (List.rev args)) in 
+        let result = cname ^ "_" ^ fname ^ "_result" in 
+        L.build_call fdef (Array.of_list llargs) result builder
+      | SConstructor (cname, args) ->
+        build_expr builder (ty, SMethodCall(cname, cname, args))
     in
 
     (* LLVM insists each basic block end with exactly one "terminator"
