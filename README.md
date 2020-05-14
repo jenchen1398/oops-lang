@@ -3,8 +3,12 @@
 How to compile and run OOPs:
 
     1. $ make
-    2. $ ./oops.native <name_of_your_file>.oops
+    2. $ ./oops.native <name_of_your_file>.oops 
     3. $ ./a.out
+
+TO-DO:
+    Semantics: check method calls and arrays 
+    Irgen: add support for class object types, array declarations, and initializations
 
 Testing the Parser:
 
@@ -48,6 +52,3 @@ Testing the Semantics:
         return 0;
     }
 
-TO-DO:
-    Scanner/Parser: recursive method calls (e.g. object.foo().foo().foo();), 
-    Semantics: check that object types match a declared class name, local and global variable scopes for classes ... // add more
