@@ -32,7 +32,7 @@ let translate (classes, globals, functions) =
   and i1_t       = L.i1_type     context in
   let string_t   = L.pointer_type i8_t in
 
-  (* Return the LLVM type for a MicroC type *)
+  (* Return the LLVM type for an OOPs type *)
   let ltype_of_typ = function
       A.Int    -> i32_t
     | A.Bool   -> i1_t
@@ -61,6 +61,37 @@ let translate (classes, globals, functions) =
       in let ftype = L.function_type (ltype_of_typ fdecl.srtyp) formal_types in
       StringMap.add name (L.define_function name ftype the_module, fdecl) m in
     List.fold_left function_decl StringMap.empty functions in
+
+
+  let class_map : ((L.llvalue * sfdecl) StringMap.t * L.llvalue StringMap.t) StringMap.t = 
+
+    let class_def c_map cdecl = 
+      
+      let cname = cdecl.scname 
+      in 
+
+      let c_vars : L.llvalue StringMap.t =
+        let c_var m (t, n) =
+          let init = L.const_int (ltype_of_typ t) 0
+          in StringMap.add n (L.define_global n init the_module) m in
+        List.fold_left c_var StringMap.empty cdecl.svars 
+      in 
+
+      let cfunction_decls : (L.llvalue * sfdecl) StringMap.t =
+        let cfunction_decl m fdecl =
+          let name = fdecl.sfname
+          and formal_types =
+            Array.of_list (List.map (fun (t,_) -> ltype_of_typ t) fdecl.sformals)
+          in let ftype = L.function_type (ltype_of_typ fdecl.srtyp) formal_types in
+          StringMap.add name (L.define_function name ftype the_module, fdecl) m in
+        List.fold_left cfunction_decl StringMap.empty cdecl.sfuncs 
+      in 
+
+      StringMap.add cname (cfunction_decls, c_vars) c_map 
+      in 
+
+    List.fold_left class_def StringMap.empty classes 
+  in  
 
   (* Fill in the body of the given function *)
   let build_function_body fdecl =
