@@ -2,9 +2,11 @@ int main(){
     int a;
     int b;
     str c;
+    int d;
     c = "Hi";
     a = 10;
     b = 20;
+    d = 7;
     if(a lt b){
         print(a);
     }else{
@@ -15,5 +17,13 @@ int main(){
     print(b / a);
     print(b % a);
     print(b - a);
+    print(b % d);
+    while(a lt b){
+        print(a);
+        a = a + 1;
+    }
+    for(a = 5; a lt 10; a = a + 1){
+        print(a);
+    }
     return a + b;
 }
