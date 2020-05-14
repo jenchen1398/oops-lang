@@ -42,7 +42,7 @@ type scdecl = {
 	sfuncs: sfdecl list;
 }
 
-type sporgram = scdecl list * bind list * sfdecl list
+type sprogram = scdecl list * bind list * sfdecl list
 
 
 (* Pretty-printing functions *)
