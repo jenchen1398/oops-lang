@@ -154,10 +154,13 @@ let check (classes, globals, functions) =
                           check_array li;
                           let checked_li = List.map check_expr li
                           in (Array(fst (List.hd checked_li), List.length checked_li), SArrayLit(checked_li) )
-      | MethodCall(cname, mname, args) -> (Int, SMethodCall(cname, mname, []))
+      | MethodCall(cname, mname, args) -> 
+          let args' = List.map check_expr args in 
+          (Obj(cname), SMethodCall(cname, mname, args'))
       (* check for valid expressions and valid class *)
-      | Constructor(obj, args) -> find_class obj;
-                          (Obj(obj), SConstructor(obj, List.map check_expr args))
+      | Constructor(obj, args) -> 
+        let retval = (Obj(obj), SConstructor(obj, List.map check_expr args)) in
+        ignore(find_class obj); retval
                           
     in
 
