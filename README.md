@@ -1,5 +1,11 @@
 # oops-lang
 
+How to compile and run OOPs:
+
+    1. $ make
+    2. $ ./oops.native <name_of_your_file>.oops
+    3. $ ./a.out
+
 Testing the Parser:
 
     1. $ ocamlbuild test1.native
