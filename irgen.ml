@@ -171,20 +171,25 @@ let translate (classes, globals, functions) =
         L.builder_at_end context end_bb
 
       | SWhile (predicate, body) ->
-        let while_bb = L.append_block context "while" the_function in
-        let build_br_while = L.build_br while_bb in (* partial function *)
-        ignore (build_br_while builder);
-        let while_builder = L.builder_at_end context while_bb in
-        let bool_val = build_expr while_builder predicate in
+            let while_bb = L.append_block context "while" the_function in
+            let build_br_while = L.build_br while_bb in (* partial function *)
+            ignore (build_br_while builder);
+            let while_builder = L.builder_at_end context while_bb in
+            let bool_val = build_expr while_builder predicate in
 
-        let body_bb = L.append_block context "while_body" the_function in
-        add_terminal (build_stmt (L.builder_at_end context body_bb) body) build_br_while;
+            let body_bb = L.append_block context "while_body" the_function in
+            add_terminal (build_stmt (L.builder_at_end context body_bb) body) build_br_while;
 
-        let end_bb = L.append_block context "while_end" the_function in
+            let end_bb = L.append_block context "while_end" the_function in
 
-        ignore(L.build_cond_br bool_val body_bb end_bb while_builder);
-        L.builder_at_end context end_bb
-
+            ignore(L.build_cond_br bool_val body_bb end_bb while_builder);
+            L.builder_at_end context end_bb
+      | SFor (init, predicate, iter, body) ->
+            ignore( build_stmt builder (SExpr(init) ) );
+            let new_stmt_body = SBlock (body :: SExpr iter :: []) in
+            let new_while = SWhile (predicate, new_stmt_body) in 
+            let stmt_list = SBlock (SExpr init :: new_while :: []) in 
+            build_stmt builder stmt_list
     in
     (* Build the code for each statement in the function *)
     let func_builder = build_stmt builder (SBlock fdecl.sbody) in
