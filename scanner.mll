@@ -15,14 +15,14 @@ let stringliteral = '"'('\\''.'|[^'\\''"'])*'"'
 
 rule token = parse
   [' ' '\t' '\r' '\n'] { token lexbuf } (* Whitespace *)
-| ("#" _*) { COMMENT }           (* Comments *)
+| "/*" { comment lexbuf }           (* Comments *)
 | '('      { LPAREN }
 | ')'      { RPAREN }
 | '{'      { LBRACE }
+| '.'      { DOT }
 | '}'      { RBRACE }
 | '['      { LBRACK }
 | ']'      { RBRACK }
-| '"'      { QUOTE }
 | ';'      { SEMI }
 | ','      { COMMA }
 | '+'      { PLUS }
@@ -33,10 +33,6 @@ rule token = parse
 | '='      { ASSIGN }
 | "&&"     { AND }
 | "||"     { OR }
-| "|"      { PIPE }
-| ">"      { OUTREDIR }
-| "<"      { INREDIR }
-| ">>"     { APPENDREDIR }
 | "lt"     { LESSER }
 | "lte"    { LESSEREQ}
 | "gt"     { GREATER }
@@ -57,10 +53,15 @@ rule token = parse
 | "public" { PUBLIC }
 | "protected" { PROTECTED }
 | "class"   { CLASS }
-| "assert"   { ASSERT }
+| "new" { NEW }
+| ['A'-'Z'] letter* as lem { OBJECT(lem) }
 | digit+ as lem  { NUM(int_of_string lem) }
 | stringliteral as lem { STRLIT(strip_quotes lem) }
 | letter (digit | letter | '_')* as lem { ID(lem) }
 | eof { EOF }
 | _ as char { raise (Failure("illegal character " ^ Char.escaped char)) }
+
+and comment = parse
+  "*/" { token lexbuf }
+  | _     { comment lexbuf }
 

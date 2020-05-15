@@ -1,47 +1,63 @@
-/* Ocamlyacc parser for OOPs lang */
+/* Ocamlyacc parser for MicroC */
 
 %{
 open Ast
 %}
 
-%token COMMENT 
-%token LPAREN RPAREN LBRACE RBRACE LBRACK RBRACK
-%token QUOTE SEMI COMMA 
-%token PLUS MINUS TIMES DIVIDE MOD
-%token LESSER LESSEREQ GREATER GREATEREQ EQ NEQ
-%token ASSIGN AND OR
-%token OUTREDIR INREDIR APPENDREDIR  PIPE
-%token IF ELSE WHILE FOR RETURN
-%token INT BOOL STR 
-%token PRIVATE PUBLIC PROTECTED CLASS ASSERT
-%token <bool> BLIT
+%token SEMI LPAREN RPAREN LBRACE RBRACE LBRACK RBRACK PLUS MINUS TIMES DIVIDE MOD ASSIGN
+%token EQ NEQ LESSER LESSEREQ GREATER GREATEREQ AND OR
+%token IF ELSE WHILE FOR INT BOOL STR
+/* return, COMMA token */
+%token RETURN COMMA DOT
+%token CLASS PRIVATE PUBLIC PROTECTED NEW
 %token <int> NUM
-%token <string> ID
+%token <bool> BLIT
 %token <string> STRLIT
+%token <string> ID
+%token <string> OBJECT
 %token EOF
 
 %start program
 %type <Ast.program> program
 
-%right PIPE
-%right OUTREDIR APPENDREDIR
-%left INREDIR
 %right ASSIGN
 %left OR
 %left AND
 %left EQ NEQ
 %left LESSER LESSEREQ GREATER GREATEREQ 
-%left PLUS MINUS 
-%left TIMES DIVIDE 
+%left PLUS MINUS
+%left TIMES DIVIDE
 %left MOD
+%left DOT
 
 %%
 
+/* add function declarations*/
 program:
-  decls EOF {$1}
+  class_decls decls EOF { ($1, fst $2, snd $2) }
+
+class_decls:
+  /*nothing*/ { [] }
+  | cdecl class_decls { $1 :: $2 }
+
+cdecl:
+  modifier CLASS OBJECT LBRACE decls RBRACE
+  {
+    {
+      cmod = $1;
+      cname = $3;
+      vars = fst $5;
+      funcs = snd $5
+    }
+  }
+
+modifier:
+   PRIVATE { Private }
+ | PUBLIC { Public }
+ | PROTECTED { Protected }
 
 decls:
-   /* nothing */ { ([], [])               }
+   /* nothing */ { ([], [])              }
  | vdecl SEMI decls { (($1 :: fst $3), snd $3) }
  | fdecl decls { (fst $2, ($1 :: snd $2)) }
 
@@ -51,22 +67,21 @@ vdecl_list:
 
 /* int x */
 vdecl:
-  typ ID { ($1, $2) }
-/* TODO see line 118 */
-/*| typ ID ASSIGN expr { ($1, $2, $4) }  */
+    typ ID { ($1, $2) }
+  | typ LBRACK NUM RBRACK ID { (Array($1, $3), $5) }
 
 typ:
+    primitive { $1 }
+  | obj { $1 }
+
+obj:
+  OBJECT { Obj($1) }
+
+primitive:
     INT   { Int   }
   | BOOL  { Bool  }
-  | STR   { Str   }
-  
-cform:
-  ctyp ID { ($1, $2) }
-  
-ctyp:
-    PUBLIC     { public }
-  | PRIVATE    { private }
-  | PROTECTED  { }
+  | STR   { String }
+
 
 /* fdecl */
 fdecl:
@@ -81,7 +96,6 @@ fdecl:
     }
   }
 
-
 /* formals_opt */
 formals_opt:
   /*nothing*/ { [] }
@@ -91,41 +105,30 @@ formals_list:
   vdecl { [$1] }
   | vdecl COMMA formals_list { $1::$3 }
 
-comment:
-  COMMENT { Comment }
-
-typ:
- INT {Int}
-| BOOL {Bool}
-| STR {Str}
+stmt_list:
+  /* nothing */ { [] }
+  | stmt stmt_list  { $1::$2 }
 
 stmt:
-    expr SEMI                               { Expr $1      }   
-  | arr  SEMI                               { Arr $1   }
-  | redirect SEMI                           { Redirect $1 }
+    expr SEMI                               { Expr $1      }
   | LBRACE stmt_list RBRACE                 { Block $2 }
   /* if (condition) { block1} else {block2} */
   /* if (condition) stmt else stmt */
   | IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7) }
   | WHILE LPAREN expr RPAREN stmt           { While ($3, $5)  }
-  /*for (start; end; increment) {block1} */
-  | FOR LPAREN expr SEMI expr SEMI expr  RPAREN stmt             { For ($3, $5, $7, $9) } 
+  | FOR LPAREN expr SEMI expr SEMI expr RPAREN stmt  { For ($3, $5, $7, $9) }
   /* return */
-  | RETURN expr SEMI                        { Return $2      }  
-
-stmt_list:
-  /* nothing */ { [] }
-  | stmt stmt_list  { $1::$2 }
+  | RETURN expr SEMI                        { Return $2      }
 
 expr:
     NUM              { Num($1)            }
   | BLIT             { BoolLit($1)            }
-  | STRLIT           { StrLit($1)             }
+  | STRLIT           { StrLit($1)            }
   | ID               { Id($1)                 }
   | expr PLUS   expr { Binop($1, Add,   $3)   }
   | expr MINUS  expr { Binop($1, Sub,   $3)   }
-  | expr TIMES  expr { Binop($1, Times, $3)   }
-  | expr DIVIDE expr { Binop($1, Divide, $3)  }
+  | expr TIMES   expr { Binop($1, Times,   $3)   }
+  | expr DIVIDE   expr { Binop($1, Divide,   $3)   }
   | expr MOD    expr { Binop($1, Mod, $3)     }
   | expr EQ     expr { Binop($1, Equal, $3)   }
   | expr NEQ    expr { Binop($1, Neq, $3)     }
@@ -135,60 +138,24 @@ expr:
   | expr GREATEREQ     expr { Binop($1, GreaterEq,  $3)   }
   | expr AND    expr { Binop($1, And,   $3)   }
   | expr OR     expr { Binop($1, Or,    $3)   }
-  | ID ASSIGN expr   { Assign($1, $3)         } /* TODO add option for: int my_id = expr; */
+  | ID ASSIGN expr   { Assign($1, $3)         }
+  | ID LBRACK NUM RBRACK { ArrayCall($1, $3) }
+  | LBRACK expr_list RBRACK { ArrayLit($2) }
   | LPAREN expr RPAREN { $2                   }
   /* call */
   | ID LPAREN args_opt RPAREN { Call ($1, $3)  }
+  | ID DOT ID LPAREN args_opt RPAREN { MethodCall($1, $3, $5) }
+  | NEW OBJECT LPAREN args_opt RPAREN { Constructor($2, $4) }
 
+expr_list:
+    expr { [$1] }
+  | expr COMMA expr_list { $1 :: $3 }
+
+/* args_opt*/
 args_opt:
- /* nothing */ { [] }
- | args { $1 }
+  /*nothing*/ { [] }
+  | args { $1 }
 
 args:
- expr { [$1] }
-| expr COMMA args { $1::$3 }
-
-/* arrays */
-/* int[4] my_array; */
-/* my_array = [1, 2, 3, 4];*/
-/* int[] my_arr = [1, 2] */
-/* TODO */
-arr:
-  | typ LBRACK NUM RBRACK ID    { ArrInit($1, $3, $5) } 
-  | ID ASSIGN llist              { ArrAssign($1, $3) }
-  | typ LBRACK RBRACK ID ASSIGN llist { ArrDecl($1, $4, $6) } 
-
-elem: 
-  NUM { Num($1) }
-| BLIT { BoolLit($1) }
-| STRLIT { StrLit($1) }
-| ID  { Id($1) }
-
-elem_list:
- elem { [$1] }
- | elem COMMA elem_list { $1::$3 }
-
-elements:
-/*nothing*/ { [] }
-| elem_list   { $1 }
-
-llist:
- LBRACK elements RBRACK { $2 }
-
-/* Pipes and redirection*/
-/*OUTREDIR INREDIR APPENDREDIR  PIPE */
-command:
-ID elem_list 						{ Command($1, $2) }
-
-redirect_pipe:
- command PIPE ID					{ Pipe($1, $3) }
-| command PIPE redirect_pipe		{ Pipe($1, $3) }
-
-redirect:
- command INREDIR ID				{ BinRedirect($1, Input, $3)  }
-| command OUTREDIR ID				{ BinRedirect($1, Output, $3) }
-| command APPENDREDIR ID		{ BinRedirect($1, Append, $3) }
-
-/* PRIVATE PUBLIC PROTECTED CLASS ASSERT */
-/* TODO */
-
+  expr  { [$1] }
+  | expr COMMA args { $1::$3 }
